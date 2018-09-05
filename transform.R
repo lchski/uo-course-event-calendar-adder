@@ -1,5 +1,6 @@
 library(xfun)
 library(tidyverse)
+library(purrrlyr)
 
 inputEvents <- read_csv("course-events.csv")
 
@@ -22,7 +23,7 @@ generateSubject <- function(course, event, prefix, numberOfWeeks = 0) {
 }
 
 eventVector <- function(subject, date) {
-  tibble(subject, startDate = date, endDate = date, allDay = TRUE)
+  tibble("Subject" = subject, "Start Date" = date, "End Date" = date, "All Day Event" = "True")
 }
 
 processEvent <- function(course, date, event, importance) {
@@ -64,3 +65,15 @@ processEvent <- function(course, date, event, importance) {
     }
   )
 }
+
+inputEvents %>%
+  by_row(..f = function(this_row) {
+    processEvent(
+      course = pull(this_row[1]),
+      date = pull(this_row[2]),
+      event = pull(this_row[3]),
+      importance = pull(this_row[4])
+    )
+  }, .collate = "list") %>%
+  select(.out) %>%
+  unnest() %>% unnest() %>% write_csv("calendar-events.csv")
