@@ -2,8 +2,6 @@ library(xfun)
 library(tidyverse)
 library(purrrlyr)
 
-inputEvents <- read_csv("course-events.csv")
-
 convertNumberOfWeeksToHumanString <- function(numberOfWeeks) {
   convertedString <- ""
   
@@ -66,14 +64,20 @@ processEvent <- function(course, date, event, importance) {
   )
 }
 
-inputEvents %>%
-  by_row(..f = function(this_row) {
-    processEvent(
-      course = pull(this_row[1]),
-      date = pull(this_row[2]),
-      event = pull(this_row[3]),
-      importance = pull(this_row[4])
-    )
-  }, .collate = "list") %>%
-  select(.out) %>%
-  unnest() %>% unnest() %>% write_csv("calendar-events.csv")
+processFile <- function(inputFileName = "course-events.csv", outputFileName = "calendar-events.csv") {
+  read_csv(inputFileName) %>%
+    by_row(..f = function(this_row) {
+      processEvent(
+        course = pull(this_row[1]),
+        date = pull(this_row[2]),
+        event = pull(this_row[3]),
+        importance = pull(this_row[4])
+      )
+    }, .collate = "list") %>%
+    select(.out) %>%
+    unnest() %>%
+    unnest() %>%
+    write_csv(outputFileName)
+}
+
+processFile()
